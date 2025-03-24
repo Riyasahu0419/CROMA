@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, MapPin, User, ShoppingCart, Menu, X, ChevronRight, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -7,6 +7,15 @@ export default function CromaNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('Kitchen Appliances');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [navbarHeight, setNavbarHeight] = useState(0);
+
+  // Track navbar height to position dropdown correctly
+  useEffect(() => {
+    const navbar = document.querySelector('nav');
+    if (navbar) {
+      setNavbarHeight(navbar.offsetHeight);
+    }
+  }, []);
 
   const categories = [
     { name: "Televisions & Accessories", path: "/televisions-accessories" },
@@ -19,26 +28,6 @@ export default function CromaNavbar() {
     { name: "Grooming & Personal Care", path: "/grooming-personal-care" },
   ];
 
-  const subcategories = {
-    "Kitchen Appliances": [
-      { name: "All Kitchen Appliances", path: "/kitchen-appliances/all" },
-      { name: "Dishwashers", path: "/kitchen-appliances/dishwashers" },
-      { name: "Microwave & Ovens", path: "/kitchen-appliances/microwave-ovens", hasSubmenu: true },
-      { name: "Microwave Accessories", path: "/kitchen-appliances/microwave-accessories" },
-      { name: "Water Purifiers & Dispensers", path: "/kitchen-appliances/water-purifiers-dispensers", hasSubmenu: true },
-      { name: "Stoves & Cooktops", path: "/kitchen-appliances/stoves-cooktops", hasSubmenu: true },
-      { name: "Electric Chimneys", path: "/kitchen-appliances/electric-chimneys" },
-      { name: "Food Preparation Appliances", path: "/kitchen-appliances/food-preparation", hasSubmenu: true },
-      { name: "Steamers & Cookers", path: "/kitchen-appliances/steamers-cookers", hasSubmenu: true },
-      { name: "Beverage Makers", path: "/kitchen-appliances/beverage-makers", hasSubmenu: true },
-      { name: "Toasters & Sandwich Makers", path: "/kitchen-appliances/toasters-sandwich-makers", hasSubmenu: true },
-      { name: "Cooking Appliances", path: "/kitchen-appliances/cooking-appliances", hasSubmenu: true },
-      { name: "Cooking Utensils", path: "/kitchen-appliances/cooking-utensils" },
-      { name: "Kitchen Utilities", path: "/kitchen-appliances/kitchen-utilities", hasSubmenu: true },
-      { name: "Cookware Accessories", path: "/kitchen-appliances/cookware-accessories" },
-      { name: "Flour Mill Machines", path: "/kitchen-appliances/flour-mill-machines" }
-    ]
-  };
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -51,9 +40,36 @@ export default function CromaNavbar() {
     setSelectedCategory(category);
   };
 
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const menuToggle = document.querySelector('[aria-label="Toggle menu"]');
+      const menuDropdown = document.querySelector('[data-menu-dropdown="true"]');
+      
+      if (
+        isMenuOpen && 
+        menuToggle && 
+        menuDropdown &&
+        !menuToggle.contains(event.target) && 
+        !menuDropdown.contains(event.target)
+      ) {
+        setIsMenuOpen(false);
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    // Add event listener
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
   return (
     <>
-      <nav className="fixed top-0 w-full z-50 bg-black text-white w-ful  ">
+      <nav className="fixed top-0 w-full z-50 bg-black text-white">
         <div className="container mx-auto px-4 md:px-20 py-6 flex items-center justify-between">
           {/* Left section - Logo and Menu */}
           <div className="flex items-center space-x-2 md:space-x-4">
@@ -72,8 +88,10 @@ export default function CromaNavbar() {
               onClick={toggleMenu}
               aria-label="Toggle menu"
             >
-              {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
-              <span className="ml-1 text-sm">Menu</span>
+              {isMenuOpen ? <X size={25} /> : <Menu size={25} />}
+              <span className="ml-1 text-sm">
+                {isMenuOpen ? 'Close' : 'Menu'}
+              </span>
             </button>
           </div>
           
@@ -117,7 +135,6 @@ export default function CromaNavbar() {
             {/* Shopping Cart */}
             <Link to="/cart" className="relative" aria-label="Shopping cart">
               <ShoppingCart size={20} />
-              
             </Link>
           </div>
         </div>
@@ -144,8 +161,16 @@ export default function CromaNavbar() {
 
       {/* Menu Dropdown */}
       {isMenuOpen && (
-        <div className="absolute left-0 right-0 bg-gray-800 text-white z-50 flex flex-col md:flex-row border-t border-gray-700">
-          {/* Mobile Menu View */}
+        <div 
+          data-menu-dropdown="true"
+          className="fixed left-0 right-0 bg-gray-800 text-white z-40 border-t border-gray-700"
+          style={{ 
+            top: `${navbarHeight}px`, 
+            height: `calc(100vh - ${navbarHeight}px)`,
+            overflowY: 'auto'
+          }}
+        >
+          {/* Mobile View */}
           {isMobileMenuOpen && window.innerWidth < 768 ? (
             <div className="w-full">
               {/* Exclusive at Croma */}
@@ -195,9 +220,9 @@ export default function CromaNavbar() {
               </div>
             </div>
           ) : (
-            <>
+            <div className="container mx-auto flex">
               {/* Left Menu Panel - Desktop */}
-              <div className="w-full md:w-1/3 border-r border-gray-700">
+              <div className="w-1/3 border-r border-gray-700">
                 {/* Exclusive at Croma */}
                 <Link to="/exclusive" className="px-4 py-3 flex items-center border-b border-gray-700">
                   <span className="font-medium">Exclusive At Croma</span>
@@ -244,25 +269,7 @@ export default function CromaNavbar() {
                   ))}
                 </div>
               </div>
-              
-              {/* Right Subcategory Panel - Desktop */}
-              <div className="w-full md:w-2/3 bg-gray-800 max-h-96 overflow-y-auto">
-                {subcategories[selectedCategory] && (
-                  <div className="p-4">
-                    {subcategories[selectedCategory].map((subcat) => (
-                      <Link 
-                        to={subcat.path}
-                        key={subcat.name}
-                        className={`py-3 px-4 flex items-center justify-between ${subcat.name === 'Electric Chimneys' ? 'bg-green-400 text-black' : 'hover:bg-gray-700'}`}
-                      >
-                        <span>{subcat.name}</span>
-                        {subcat.hasSubmenu && <ChevronRight size={18} />}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </>
+            </div>
           )}
         </div>
       )}
