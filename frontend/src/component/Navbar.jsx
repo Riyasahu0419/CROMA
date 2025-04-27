@@ -221,9 +221,9 @@ export default function CromaNavbar() {
             </div>
           ) : (
             <div className="container mx-auto flex">
-              {/* Left Menu Panel - Desktop */}
+              
               <div className="w-1/3 border-r border-gray-700">
-                {/* Exclusive at Croma */}
+               
                 <Link to="/exclusive" className="px-4 py-3 flex items-center border-b border-gray-700">
                   <span className="font-medium">Exclusive At Croma</span>
                 </Link>

@@ -10,7 +10,7 @@ import {
 export default function Footer() {
   return (
     <footer className="bg-black text-white p-8 flex flex-col md:grid md:grid-cols-3 gap-6">
-      {/* Connect With Us Section */}
+      
       <div>
         <h3 className="font-bold mb-4">CONNECT WITH US</h3>
         <div className="flex items-center mb-4 w-full">
